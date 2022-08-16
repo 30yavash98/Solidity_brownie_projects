@@ -84,7 +84,7 @@ contract Blast is Ownable , VRFConsumerBase{
         require(msg.value > 0 , "its not charged!!!");
     }
     
-    // here we have logic of our random ratios and chance , the chance of being between 1 and 2 , is 570-20/1000 = 55%
+    // here we have the logic of our random ratios and chance , the chance of being between 1 and 2 , is 570-20/1000 = 55%
     // or the chance of being 0 is 20-0/1000 = 2% and the rest are calculated in this way (top+1-bottom/1000)
     
     function getRatio() public onlyOwner{
