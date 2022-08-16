@@ -58,7 +58,6 @@ def payment():
     payment_tx = blast.blastPayment(
         {"from": account})
     payment_tx.wait(1)
-    #"priority_fee": 3500000000
     print(f"we had {blast.winnerCounter()} winner!!!")
 
 
