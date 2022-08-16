@@ -21,7 +21,9 @@ contract Blast is Ownable , VRFConsumerBase{
     BLAST_STATUS public blast_status;
 
     event requestIdRandomness(bytes32 requestId);
-
+    
+    // the minimum amount of entrance fee is 5 $
+    
     constructor(address _entranceFeeAddress , address _vrfcoordinator , address _link , bytes32 _keyhash , uint256 _fee) public VRFConsumerBase(_vrfcoordinator , _link){
         blast_status = BLAST_STATUS.CLOSE;
         keyHash = _keyhash;
@@ -30,7 +32,9 @@ contract Blast is Ownable , VRFConsumerBase{
         entranceFeeAmount = 5 * (10**18);
         entranceFeeContract = AggregatorV3Interface(_entranceFeeAddress);
     }
-
+    
+    // storing information of players for payment
+    
     struct info{
         address payable account;
         uint256 money;
@@ -39,16 +43,16 @@ contract Blast is Ownable , VRFConsumerBase{
 
     info[] public players;
 
-    function blastBalance() public view returns(uint256){
-        return address(this).balance;
-    }
-
     function entranceFee() public view returns(uint256){
         ( ,int price, , , ) = entranceFeeContract.latestRoundData();
         uint256 adjustedPrice = uint256(price) * (10**10); //18 decimal,'price' 8 decimal dare
         uint256 costToEnter = entranceFeeAmount * (10**18) / adjustedPrice; //vooroodi be wei
         return costToEnter;
     }
+    
+    // NOTE: in solidity unfortunately we can't use decimal numbers, so we get the ratios multiplied by 100
+    // and in the payment function, we divide the ratios by 100
+    
     function enter(uint256 _ratio) payable public{
         require(blast_status == BLAST_STATUS.OPEN);
         require(msg.value >= entranceFee() , "not enough money for blast!!!");
@@ -73,11 +77,16 @@ contract Blast is Ownable , VRFConsumerBase{
         require(_randomness > 0 , "there is no random number yet!!!");
         randomness = _randomness;
     }
-
+    
+    // with this function , we fund our contract
+    
     function charge() payable public onlyOwner{
         require(msg.value > 0 , "its not charged!!!");
     }
-
+    
+    // here we have logic of our random ratios and chance , the chance of being between 1 and 2 , is 570-20/1000 = 55%
+    // or the chance of being 0 is 20-0/1000 = 2% and the rest are calculated in this way (top+1-bottom/1000)
+    
     function getRatio() public onlyOwner{
         require(blast_status == BLAST_STATUS.CALCULATING, "blast is not ended!!!");
         uint256 modulus = randomness % 1000;
